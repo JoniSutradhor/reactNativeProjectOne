@@ -1,15 +1,35 @@
 import ImagePicker from 'react-native-image-picker';
 import React, {useState} from 'react';
-import { StyleSheet, Text, View,Modal,TextInput,Button, Image } from 'react-native';
+import {
+   StyleSheet, 
+   Text, 
+   View,
+   Modal,
+   TextInput,
+   Button, 
+   Image,
+   Keyboard } from 'react-native';
 
 import RNPickerSelect from 'react-native-picker-select';
 
 
-class ImageSelectPage extends React.Component{
-   
-  state = {
-    avatarSource: null
+export default class App extends React.Component{
+
+  constructor(props){
+    super(props);
+    this.state = {
+      avatarSource: null,
+      SignUpModal : false,
+      VerifyPage : false,
+      nameEmail : '',
+      passOne : '',
+      passTwo : '',
+      usernameEmail : 'admin',
+      password : '123456'
+    }
   }
+   
+  
   selectImage = () => {
     ImagePicker.showImagePicker({noData:true, mediaType: 'photo'}, (response) => {
       console.log('Response = ', response);
@@ -21,11 +41,6 @@ class ImageSelectPage extends React.Component{
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        
-        
-        // You can also display the image using data:
-        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
-    
         this.setState({
           avatarSource: response.uri,
           timeStamp: response.timestamp
@@ -34,111 +49,163 @@ class ImageSelectPage extends React.Component{
     });
   }
 
+  setSignUpModal(visible) {
+    this.setState({SignUpModal: visible});
+  }
+  setVerifyPage(visible) {
+    this.setState({VerifyPage: visible});
+  }
+
+  signUpFun = () =>{
+    const {nameEmail, passOne, passTwo} = this.state;
+    if(nameEmail ==""){
+      alert('Please fill the Name/Email field..!!');
+    }else if(passOne ==""){
+      alert('Please fill the Password field..!!');
+    }else if(passTwo ==""){
+      alert('Please fill the Confirm Password field..!!');
+    }else if(passOne !== passTwo){
+      alert('Confirm Password did not Match..!!');
+    }else{
+      alert('Successfully Signed Up .....!!! ' + ' Your Name/Email : '+ nameEmail + 'Your Password : ' + passOne)
+    }
+    Keyboard.dismiss();
+  }
+
+  signInFun= () =>{
+    const {usernameEmail, password, nameEmail, passOne} = this.state;
+    if(usernameEmail == nameEmail && password == passOne){
+      this.setVerifyPage(true)
+    }else if(usernameEmail == 'admin' && password == '123456'){
+      this.setVerifyPage(true)
+    }else{
+      alert('Invalid Credentials.....!!')
+    }
+  }
+
+  navigateToLoginPage = () =>{
+    this.setSignUpModal(!this.state.SignUpModal)
+  }
+
+  navigateToSignUpPage = () =>{
+    this.setSignUpModal(true)
+  }
+
   render(){
     return (
       
-      <View style={{flex:1, justifyContent: 'center', alignItems: 'center', padding:10}}>
-       {
-         this.state.avatarSource && <Image source={{uri:this.state.avatarSource}} style={{width: '95%', height:200, resizeMode: 'contain', marginBottom: 30}}/>
-       }
+      <View style={{flex:1, justifyContent: 'center', alignItems: 'center', padding:20}}>
+        <Modal visible={this.state.SignUpModal} style={{justifyContent: 'center', alignItems: 'center'}}>
+          <View style={{ flex: 1, justifyContent: 'center',  padding: 20 }}>
+            <View style={{ alignItems: 'center', marginBottom: 10 }}>
+              <Text>Sign Up</Text>
+            </View>
+              
+            <View>
+              <TextInput
+               minLength={5} 
+               placeholder='Name/Email' 
+               style={styles.inputField} 
+               onChangeText={
+                 nameEmail => this.setState({nameEmail})
+               }
+              />  
+            </View>  
+            
+            <View>
+              <TextInput 
+              minLength={5} 
+              secureTextEntry 
+              placeholder='Password' 
+              style={styles.inputField}
+              onChangeText={
+                passOne => this.setState({passOne})
+              }
+              />
+            </View>
 
-       <Button title="Select Image" onPress={this.selectImage}/>
+            <View>
+              <TextInput 
+              minLength={5} 
+              secureTextEntry 
+              placeholder='Confirm Password' 
+              style={
+                styles.inputField
+              }
+              onChangeText={
+                passTwo => this.setState({passTwo})
+              }
+              />
+            </View>
+            
+            <Button onPress={this.signUpFun} style={{marginBottom:10}} title='Sing Up'></Button>
+            
+            <View style={{marginTop:10}}>
+              <Text onPress={this.navigateToLoginPage} style={{ textAlign:"center"}}>Already have an Account? Login Now.</Text>
+            </View>
+          </View>
+        </Modal>
 
-       <RNPickerSelect 
-          onValueChange={(value) => console.log(value)}
-          items={[
-              { label: 'Tomato', value: 'tomato' },
-              { label: 'Potato', value: 'potato' },
-              { label: 'Papaya', value: 'papaya' },
-          ]}
-       />
-       <Button title='Verify Image with AI' onPress={console.log("This feature is not yet Released....!!")}/>
+        <Modal visible={this.state.VerifyPage}>
+          <View style={{flex: 1, justifyContent: 'center',  padding: 20}}>
+            {
+            this.state.avatarSource && <Image source={{uri:this.state.avatarSource}} style={{width: '95%', height:200, resizeMode: 'contain', marginBottom: 30}}/>
+            }
+
+            <Button title="Select Image" onPress={this.selectImage}/>
+
+            <RNPickerSelect 
+              onValueChange={(value) => console.log(value)}
+              items={[
+                  { label: 'Tomato', value: 'tomato' },
+                  { label: 'Potato', value: 'potato' },
+                  { label: 'Papaya', value: 'papaya' },
+              ]}
+            />
+            <Button title='Verify Image with AI' onPress={console.log("This feature is not yet Released....!!")}/>
+            <Text style={{textAlign: 'center', marginTop:10}} onPress={() => this.setVerifyPage(!this.state.VerifyPage)}>Back to Login Page</Text>
+          </View>
+        </Modal>
+
+        <View style={{ width: '100%'}}>
+          <View style={{height:50, alignItems:"center", paddingTop:20}}>
+              <Text>Login</Text>
+          </View>
+          
+            <TextInput 
+            placeholder='Name/Email' 
+            style={
+              styles.inputField
+            }
+            onChangeText={
+              usernameEmail => this.setState({usernameEmail})
+            }
+            />
+          
+          <View>
+            <TextInput 
+            placeholder='Password'  
+            secureTextEntry 
+            style={
+              styles.inputField
+            }
+            onChangeText={
+              password => this.setState({password})
+            }
+            />
+          </View>
+          
+            <Button onPress={this.signInFun} title='Sing In'></Button>
+          
+          <View style={{marginTop:10, float:'right'}}>
+            <Text onPress={this.navigateToSignUpPage} style={{ textAlign:"center"}}>No Account ? Sign Up Now.</Text>
+          </View>
+        </View>
       </View>
-    
-  
     );
   }
   
 };
-
-export default function App() {
-
-  
-  const userInfo = { userName: 'admin', password:'joni'};
-  
-
-  const [modalOpen, setModalOpen] = useState(false);  
-  const [modalOpen2, setModalOpen2] = useState(false);  
-
-  return (
-    <View style={styles.container}>
-      <Modal visible={modalOpen} style={{justifyContent: 'center', alignItems: 'center'}}>
-      <View style={{ flex: 1, justifyContent: 'center',  padding: 10 }}>
-        <View style={{ alignItems: 'center', marginBottom: 10 }}>
-          <Text>Sign Up</Text>
-        </View>
-          
-        <View>
-          <TextInput placeholder='Name/Email' style={{marginBottom:10, height:50, borderColor: 'blue', borderWidth: 1, borderRadius:10, padding:10}} ></TextInput>  
-        </View>  
-        
-        <View>
-          <TextInput placeholder='Password' style={{marginBottom:10, height:50, borderColor: 'blue', borderWidth: 1, borderRadius:10, padding:10}}></TextInput>
-        </View>
-
-        <View>
-          <TextInput placeholder='Confirm Password' style={{marginBottom:10, height:50, borderColor: 'blue', borderWidth: 1, borderRadius:10, padding:10}}></TextInput>
-        </View>
-        
-        <Button style={{marginBottom:10}} title='Sing Up'></Button>
-        
-        <View style={{marginTop:10}}>
-          <Text onPress={() => setModalOpen(false)} style={{ textAlign:"center"}}>Already have an Account? Login Now.</Text>
-        </View>
-      </View>
-      </Modal>
-
-      <Modal visible={modalOpen2}>
-        <View style={{flex: 1, justifyContent: 'center',  padding: 10}}>
-          <ImageSelectPage />
-          <Text style={{textAlign: 'center'}} onPress={() => setModalOpen2(false)}>Back to Login Page</Text>
-        </View>
-      </Modal>
-
-
-      <View style={{padding: 10}}>
-        <View style={{height:50, alignItems:"center", paddingTop:20}}>
-            <Text>Login</Text>
-        </View>
-        
-          
-          <TextInput onChangeText={(userName)=>this.setState({userName})} placeholder='Name/Email' style={{marginBottom:10, height:50, borderColor: 'blue', borderWidth: 1, borderRadius:10, padding:10}} ></TextInput>
-        
-        <View>
-          <TextInput placeholder='Password' style={{marginBottom:10, height:50, borderColor: 'blue', borderWidth: 1, borderRadius:10, padding:10}}></TextInput>
-        </View>
-        
-          <Button onPress={() => setModalOpen2(true)} title='Sing In'></Button>
-        
-        <View style={{marginTop:10, float:'right'}}>
-          <Text onPress={() => setModalOpen(true)} style={{ textAlign:"center"}}>No Account ? Sign Up Now.</Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-class Auth extends React.Component{
-  
-
-  constructor (){
-    super(props);
-    this.state={
-      userName: '',
-      password: ''
-    }
-  }
-}
 
 
 const styles = StyleSheet.create({
@@ -147,4 +214,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'center',
   },
+  inputField: {
+    marginBottom:10, 
+    height:50, 
+    borderColor: 'blue', 
+    borderWidth: 1, 
+    borderRadius:10, 
+    padding:10
+  }
 });
